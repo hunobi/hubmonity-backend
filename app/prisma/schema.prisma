@@ -1,0 +1,175 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model User{
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId 
+  create_account_timestamp Int
+  public_key String? @unique
+  login String @unique
+  password String
+  salt String
+  nickname String @unique
+  logins_history Login_History[]
+  sessions Session[]
+  penalties Penalty[]
+  alerts Alert[]
+  profile Profile
+  settings Setting
+  
+  invites Invite[] @relation("MyInvites")
+  invited Invite? @relation("MyInviter")
+
+  tag_follower_id String[] @db.ObjectId @unique
+  tag_black_list_id String[] @db.ObjectId @unique
+  tag_follower Tag[] @relation("Followers", fields: [tag_follower_id], references: [id])
+  tag_black_lists Tag[] @relation("Black_List", fields: [tag_black_list_id], references: [id])
+
+  questions Question[] @relation("Author_Question")
+  visited_questions_ids String[] @db.ObjectId @unique
+  visited_questions Question[] @relation("Visitor_Question", fields: [visited_questions_ids], references: [id])
+
+  solutions Solution[] @relation("Author_Solution")
+  voter_ids String[] @db.ObjectId
+  voter_solution Solution[] @relation("Voter_Solution", fields: [voter_ids] ,references: [id])
+}
+
+model Invite{
+  id    String  @id @default(auto()) @map("_id") @db.ObjectId  // id == token
+  inviter User     @relation("MyInvites",fields: [inviterID], references: [id])
+  inviterID String @db.ObjectId
+  invited User     @relation("MyInviter", fields: [invitedID], references: [id])
+  invitedID String @db.ObjectId @unique
+  is_active Boolean
+  max_number_of_uses Int
+  create_time Int
+  end_time Int
+}
+
+type Alert{
+  title String
+  description String
+  icon String
+  url String
+  timestamp Int
+  action AlertAction
+  status AlertStatus @default(NOT_READ)
+}
+
+enum AlertAction{
+  NONE
+  OPEN_URL
+}
+
+enum AlertStatus{
+  NOT_READ
+  READ
+}
+
+type Profile{
+  avatar String? @default("")
+  description String? @default("")
+}
+
+type Setting{
+  language Language @default(PL)
+}
+
+enum Language{
+  PL
+  EN
+}
+
+type Login_History{
+  ip String
+  user_agent String
+  time Int
+  status Boolean
+}
+
+type Session{
+  ip String?
+  token String
+  user_agent String?
+  start_timestamp Int?
+  end_timestamp Int?
+  is_active Boolean? @default(false)
+}
+
+type Penalty{
+  start_timestamp Int
+  end_timestamp Int
+  is_perm Boolean @default(false)
+  is_active Boolean @default(false)
+  description String
+}
+
+// Tags for Questions/Guides ...
+
+model Tag{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+  follower_id String[] @db.ObjectId @unique
+  black_lister_id String[] @db.ObjectId @unique
+  followers User[]  @relation("Followers", fields: [follower_id], references: [id])
+  black_list User[] @relation("Black_List", fields: [black_lister_id], references: [id])
+  questions_id String[] @db.ObjectId
+  questions Question[] @relation(fields: [questions_id], references: [id]) 
+}
+
+// Module: Questions
+
+model Question{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  author User @relation("Author_Question",fields: [author_id], references: [id])
+  author_id String @db.ObjectId
+  tags Tag[] @relation(fields: [tags_id], references: [id])
+  tags_id String[] @db.ObjectId @unique
+  title String
+  create_time Int
+  close_time Int?
+  update_time Int?
+  solved Boolean @default(false)
+  visitors_id String[] @db.ObjectId @unique
+  visitors User[] @relation("Visitor_Question",fields: [visitors_id], references: [id])
+}
+
+model Solution{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  author_id String @db.ObjectId  
+  author User @relation("Author_Solution", fields: [author_id], references: [id])
+  voter_id String[] @db.ObjectId @unique
+  voters User[] @relation("Voter_Solution", fields: [voter_id], references: [id])
+  create_time Int
+  
+}
+
+type Content{
+  value String
+
+}
+
+type File{
+  filename String
+  hash String
+  size Int
+  type FileMime
+  url String
+}
+
+enum FileMime{
+  IMAGE
+  GIF
+  VIDEO
+  DOCUMENT
+  ARCHIVE
+  BINARY
+}
