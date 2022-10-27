@@ -72,4 +72,9 @@ export class UsersService {
             sessions: new_session
         }, where: {id: user.id} })
     }
+
+    async update_session(new_sessions: Session[], user:User) {
+        return await this.prisma.user.update({data:{sessions: new_sessions}, where: {id: user.id}})
+    }
+
 }
