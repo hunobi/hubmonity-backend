@@ -1,4 +1,4 @@
-import { ConflictException, ForbiddenException ,Injectable} from '@nestjs/common';
+import { BadRequestException, ConflictException, ForbiddenException ,Injectable} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Language, Setting, Session, Login_History } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -44,10 +44,9 @@ export class AuthService {
         new_login_history.time = time;
         new_login_history.user_agent = headers['user-agent'];
         const body_password_hash = await bcrypt.hash(body.password, user.salt);
-        console.log(body_password_hash, user.password);
         if(body_password_hash === user.password){
+            const refresh_token = this.jwt_service.sign({time: time, user_id: user.id, nickname: user.nickname}, {secret: env.TOKEN_REFRESH_SECRET, expiresIn: env.TOKEN_REFRESH_EXPIRE});
             const token = this.jwt_service.sign({time: time, user_id: user.id, nickname: user.nickname}, {expiresIn: env.TOKEN_EXPIRE, secret: env.TOKEN_SECRET});
-            const refresh_token = this.jwt_service.sign({time: time, user_id: user.id, nickname: user.nickname}, {secret: env.TOKEN_REFRESH_SECRET}); // expiresIn: env.TOKEN_REFRESH_EXPIRE
             const new_session = new Object as Session;
             new_session.start_timestamp = time;
             new_session.is_active = true;
@@ -76,7 +75,7 @@ export class AuthService {
             const user = await this.user_service.getUserByID_private(data['user_id']);
             const verify = user.sessions.find((session) => {return (session.token===refresh_token && session.is_active)})
             if(verify){
-                const new_token = await this.jwt_service.signAsync({user_id: user.id, nickname: user.nickname, time: Date.now()},{secret: env.TOKEN_SECRET})
+                const new_token = await this.jwt_service.signAsync({user_id: user.id, nickname: user.nickname, time: Date.now()},{secret: env.TOKEN_SECRET, expiresIn: env.TOKEN_EXPIRE})
                 return {token: new_token}
             }
             else{
@@ -88,7 +87,26 @@ export class AuthService {
     }
 
     // Disable your refresh token and logout
-    logout(){
-
+    async logout(token: string, refresh_token : string) : Promise<any>{
+        try{
+            await this.jwt_service.verifyAsync(refresh_token, {secret: env.TOKEN_REFRESH_SECRET});
+            const token_decoded = this.jwt_service.decode(token);
+            const refresh_token_decoded = this.jwt_service.decode(refresh_token)
+            if(refresh_token_decoded['user_id'] !== token_decoded['user_id']){
+                throw new ForbiddenException();
+            }
+            const user = await this.user_service.getUserByID_private(token_decoded['user_id']);
+            user.sessions.forEach(session=>{
+                if(session.token === refresh_token){
+                    session.is_active = false;
+                    session.end_timestamp = Date.now();
+                }
+            });
+            await this.user_service.update_session(user.sessions, user);
+            return ;
+        }
+        catch{
+            throw new BadRequestException();
+        }
     }
 }

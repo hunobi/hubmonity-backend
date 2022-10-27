@@ -1,8 +1,9 @@
-import { Controller, Post, Delete, HttpCode, Body, Req, Ip} from '@nestjs/common';
+import { Controller, Post, Delete, HttpCode, Body, Req, Ip, UseGuards, Headers} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshDto } from './dto/refresh.dto';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -31,10 +32,12 @@ export class AuthController {
     }
 
     // Disable your refresh token and logout
+    @UseGuards(JwtAuthGuard)
     @Delete('/logout')
     @HttpCode(204)
-    logout(){
-
+    logout(@Body() body : RefreshDto, @Headers() headers){
+        const token = headers['authorization'].split(' ')[1];
+        return this.auth_service.logout(token,body.refresh_token);
     }
 
 }

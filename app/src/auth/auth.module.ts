@@ -8,14 +8,17 @@ import { PassportModule } from '@nestjs/passport';
 import * as dotenv from 'dotenv'
 
 const env = dotenv.config({path: '.env'}).parsed;
-
+/*
+JwtModule.register({
+    secret: env.TOKEN_SECRET,
+    signOptions: { expiresIn: env.TOKEN_EXPIRE },
+  }) 
+*/
 @Module({
   imports: [UsersModule,
     PassportModule,
-    JwtModule.register({
-    secret: env.TOKEN_SECRET,
-    signOptions: { expiresIn: env.TOKEN_EXPIRE },
-  })],
+    JwtModule
+    ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService]
