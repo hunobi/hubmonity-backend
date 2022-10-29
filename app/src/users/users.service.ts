@@ -1,8 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ObjectID } from 'bson';
-import { GetMeUserDto } from './dto/get-me-user.dto';
-import { GetUserDto } from './dto/get-user.dto';
 import { CreateUserDto } from './dto/create-user.dto';
 import { User, Profile, Setting, Language, Login_History, Session } from '@prisma/client';
 
@@ -11,7 +9,7 @@ export class UsersService {
     constructor(private prisma: PrismaService){}
 
     // temp endpoint     TODO: Remove it
-    async getUsers() : Promise<Object>{
+    async getUsers() : Promise<User[]>{
         return await this.prisma.user.findMany();
     }
 
@@ -20,18 +18,13 @@ export class UsersService {
         if(!ObjectID.isValid(user_id)){throw new NotFoundException()}
         const user = await this.prisma.user.findUnique({where: {id: user_id}})
         if(!user){throw new NotFoundException()}
-        const {id, create_account_timestamp, nickname} = user 
-        return {id, create_account_timestamp, nickname};
+        const {id, create_account_timestamp, nickname, public_key} = user 
+        return {id, create_account_timestamp, nickname, public_key};
     }
 
     // Get my user data 
-    async getInfoAboutMe() : Promise<GetMeUserDto>{
-        const user = new GetMeUserDto();
-        /* TODO:
-            1. Get data from DB
-            2. Set values of user object 
-        */
-        return user;
+    async getInfoAboutMe(user_id : string) : Promise<User>{
+        return await this.prisma.user.findFirst({where: {id : user_id}, include: {invited: true, invites: true}});
     }
 
 /*-------------------------------------------------------------
