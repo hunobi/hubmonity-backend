@@ -46,10 +46,9 @@ model Invite{
   id    String  @id @default(auto()) @map("_id") @db.ObjectId  // id == token
   inviter User     @relation("MyInvites",fields: [inviterID], references: [id])
   inviterID String @db.ObjectId
-  invited User     @relation("MyInviter", fields: [invitedID], references: [id])
-  invitedID String @db.ObjectId @unique
+  invited User?     @relation("MyInviter", fields: [invitedID], references: [id])
+  invitedID String? @db.ObjectId @unique
   is_active Boolean
-  max_number_of_uses Int
   create_time Int
   end_time Int
 }
