@@ -19,6 +19,7 @@ export class AuthService {
 
     // Create new account
     async registr(body : CreateAccountDto){
+        /* TODO : Invite code ! */
         const user_by_login = await this.user_service.getUserByLogin(body.login);
         const user_by_username = await this.user_service.getUserByUsername(body.username);
         if(!user_by_login && !user_by_username){   
@@ -69,6 +70,7 @@ export class AuthService {
 
     // Create new access token
     async refresh(refresh_token : string){
+        // TODO : Cancel old refresh token
         try{
             await this.jwt_service.verifyAsync(refresh_token,{secret: env.TOKEN_REFRESH_SECRET})
             const data = this.jwt_service.decode(refresh_token) as Object 
@@ -87,15 +89,14 @@ export class AuthService {
     }
 
     // Disable your refresh token and logout
-    async logout(token: string, refresh_token : string) : Promise<any>{
+    async logout(user_id: string, refresh_token : string) : Promise<any>{
         try{
             await this.jwt_service.verifyAsync(refresh_token, {secret: env.TOKEN_REFRESH_SECRET});
-            const token_decoded = this.jwt_service.decode(token);
             const refresh_token_decoded = this.jwt_service.decode(refresh_token)
-            if(refresh_token_decoded['user_id'] !== token_decoded['user_id']){
+            if(refresh_token_decoded['user_id'] !== user_id){
                 throw new ForbiddenException();
             }
-            const user = await this.user_service.getUserByID_private(token_decoded['user_id']);
+            const user = await this.user_service.getUserByID_private(user_id);
             user.sessions.forEach(session=>{
                 if(session.token === refresh_token){
                     session.is_active = false;

@@ -1,4 +1,6 @@
-import { Controller, Post, Delete, HttpCode, Body, Req, Ip, UseGuards, Headers} from '@nestjs/common';
+import { Controller, Post, Delete, HttpCode, Body, Req, Ip, UseGuards} from '@nestjs/common';
+import { AuthUserDto } from 'src/users/dto/auth-user.dto';
+import { AuthUser } from 'src/users/user.decorator';
 import { AuthService } from './auth.service';
 import { CreateAccountDto } from './dto/create-account.dto';
 import { LoginDto } from './dto/login.dto';
@@ -35,9 +37,8 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Delete('/logout')
     @HttpCode(204)
-    logout(@Body() body : RefreshDto, @Headers() headers){
-        const token = headers['authorization'].split(' ')[1];
-        return this.auth_service.logout(token,body.refresh_token);
+    logout(@Body() body : RefreshDto, @AuthUser() user: AuthUserDto){
+        return this.auth_service.logout(user.user_id,body.refresh_token);
     }
 
 }
