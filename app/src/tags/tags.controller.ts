@@ -1,4 +1,4 @@
-import { Controller, Param, Body, Get, Post, Patch, UseGuards, HttpCode } from '@nestjs/common';
+import { Controller, Param, Body, Get, Patch, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { AuthUserDto } from 'src/users/dto/auth-user.dto';
 import { AuthUser } from 'src/users/user.decorator';
@@ -39,12 +39,4 @@ export class TagsController {
         return this.tag_service.unlock_tag_public(user.user_id, body.tag_name);
     }
 
-
-    // TEMP Endpoint
-    @Post()
-    @UseGuards(JwtAuthGuard)
-    @HttpCode(201)
-    create_tag(@Body() body){
-        return this.tag_service.create_tag(body.name);
-    }
 }
