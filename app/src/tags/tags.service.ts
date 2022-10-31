@@ -54,8 +54,10 @@ export class TagsService {
         // I am a black lister.
         if(tag.black_lister_id.indexOf(user_id) > -1){throw new BadRequestException();}
         // Eh. Let's go work..
-        // First we must unfollow tag, so..
-        await this.unfollow_tag_public(user_id, tag_name);
+        // First we need to check following status and then unfollow if necessary, so..
+        if(tag.follower_id.indexOf(user_id) > -1){
+            await this.unfollow_tag_public(user_id, tag_name);
+        }
         // Now, Let's go to the black list
         await this.prisma.tag.update({where: {id: tag.id}, data: {
             black_list: {
