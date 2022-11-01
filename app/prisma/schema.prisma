@@ -25,6 +25,9 @@ model User{
   profile Profile
   settings Setting
   
+  role_id String @unique @db.ObjectId
+  role Role? @relation(fields: [role_id], references: [id])
+
   invites Invite[] @relation("MyInvites")
   invited Invite? @relation("MyInviter")
 
@@ -38,8 +41,8 @@ model User{
   visited_questions Question[] @relation("Visitor_Question", fields: [visited_questions_ids], references: [id])
 
   solutions Solution[] @relation("Author_Solution")
-  voter_ids String[] @db.ObjectId
-  voter_solution Solution[] @relation("Voter_Solution", fields: [voter_ids] ,references: [id])
+  
+  rating_solutions Rating[] @relation("Rating_Solution")
 }
 
 model Invite{
@@ -111,6 +114,28 @@ type Penalty{
   description String
 }
 
+model Role{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+
+  user_ids String[] @db.ObjectId @unique
+  users User[]
+
+  questions Privilege[]
+  tags Privilege[]
+  solutions Privilege[]
+  ratings Privilege[]
+  invites Privilege[]
+  roles Privilege[]
+}
+
+enum Privilege{
+  CAN_WRITE
+  CAN_READ
+  CAN_UPDATE
+  CAN_DELETE
+}
+
 // Tags for Questions/Guides ...
 
 model Tag{
@@ -120,8 +145,8 @@ model Tag{
   black_lister_id String[] @db.ObjectId @unique
   followers User[]  @relation("Followers", fields: [follower_id], references: [id])
   black_list User[] @relation("Black_List", fields: [black_lister_id], references: [id])
-  questions_id String[] @db.ObjectId
-  questions Question[] @relation(fields: [questions_id], references: [id]) 
+  questions_ids String[] @db.ObjectId
+  questions Question[] @relation(fields: [questions_ids], references: [id]) 
 }
 
 // Module: Questions
@@ -133,27 +158,30 @@ model Question{
   tags Tag[] @relation(fields: [tags_id], references: [id])
   tags_id String[] @db.ObjectId @unique
   title String
+  detail Content
   create_time Int
   close_time Int?
-  update_time Int?
+  update_time Int?   // time of last response
   solved Boolean @default(false)
-  visitors_id String[] @db.ObjectId @unique
-  visitors User[] @relation("Visitor_Question",fields: [visitors_id], references: [id])
+  visitors_ids String[] @db.ObjectId @unique
+  visitors User[] @relation("Visitor_Question",fields: [visitors_ids], references: [id])
+  solutions Solution[] @relation("Question_Solution")
 }
 
 model Solution{
   id String @id @default(auto()) @map("_id") @db.ObjectId
   author_id String @db.ObjectId  
   author User @relation("Author_Solution", fields: [author_id], references: [id])
-  voter_id String[] @db.ObjectId @unique
-  voters User[] @relation("Voter_Solution", fields: [voter_id], references: [id])
   create_time Int
-  
+  ratings Rating[]
+  content Content[]
+  question_id String @db.ObjectId
+  question Question @relation("Question_Solution",fields: [question_id], references: [id])
 }
 
 type Content{
   value String
-
+  file File[]
 }
 
 type File{
@@ -171,4 +199,18 @@ enum FileMime{
   DOCUMENT
   ARCHIVE
   BINARY
+}
+
+model Rating{
+  id  String @id @default(auto()) @map("_id") @db.ObjectId
+  voter_id String @db.ObjectId @unique
+  voter User @relation("Rating_Solution", fields: [voter_id], references: [id])
+  solution_id String @db.ObjectId @unique
+  solution Solution @relation(fields: [solution_id], references: [id])
+  value RatingType
+}
+
+enum RatingType{
+  GOOD 
+  BAD 
 }
