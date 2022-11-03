@@ -43,6 +43,9 @@ model User{
   solutions Solution[] @relation("Author_Solution")
   
   rating_solutions Rating[] @relation("Rating_Solution")
+
+  my_file_ids String[] @db.ObjectId
+  my_files File[] @relation("My_Files",fields: [my_file_ids], references: [id])
 }
 
 model Invite{
@@ -158,7 +161,7 @@ model Question{
   tags Tag[] @relation(fields: [tags_id], references: [id])
   tags_id String[] @db.ObjectId @unique
   title String
-  detail Content
+  detail String  // markdown
   create_time Int
   close_time Int?
   update_time Int?   // time of last response
@@ -174,31 +177,21 @@ model Solution{
   author User @relation("Author_Solution", fields: [author_id], references: [id])
   create_time Int
   ratings Rating[]
-  content Content[]
+  content String  // markdown
   question_id String @db.ObjectId
   question Question @relation("Question_Solution",fields: [question_id], references: [id])
 }
 
-type Content{
-  value String
-  file File[]
-}
-
-type File{
+model File{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  hash String @unique
+  owners_ids String[] @db.ObjectId
+  owners User[] @relation("My_Files",fields: [owners_ids], references: [id])
+  create_time Int
   filename String
-  hash String
+  extension String?
   size Int
-  type FileMime
-  url String
-}
-
-enum FileMime{
-  IMAGE
-  GIF
-  VIDEO
-  DOCUMENT
-  ARCHIVE
-  BINARY
+  path String
 }
 
 model Rating{
