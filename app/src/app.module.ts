@@ -4,10 +4,14 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
 import { InviteModule } from './invite/invite.module';
 import { TagsModule } from './tags/tags.module';
+import { RatingsModule } from './ratings/ratings.module';
+import { SolutionsModule } from './solutions/solutions.module';
+import { QuestionsModule } from './questions/questions.module';
+import { FilesModule } from './files/files.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, AuthModule, InviteModule, TagsModule],
-  controllers: [],
-  providers: [],
+  imports: [PrismaModule, UsersModule, AuthModule, 
+    InviteModule, TagsModule, RatingsModule, 
+    SolutionsModule, QuestionsModule, FilesModule],
 })
 export class AppModule {}
