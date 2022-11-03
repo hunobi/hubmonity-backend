@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { ObjectID } from 'bson';
 import { CreateUserDto } from './dto/create-user.dto';
-import { User, Profile, Setting, Language, Login_History, Session } from '@prisma/client';
+import { User, Profile, Setting, Language, Login_History, Session, Role } from '@prisma/client';
 
 @Injectable()
 export class UsersService {
@@ -24,7 +24,7 @@ export class UsersService {
 
     // Get my user data 
     async getInfoAboutMe(user_id : string) : Promise<User>{
-        return await this.prisma.user.findFirst({where: {id : user_id}, include: {invited: true, invites: true}});
+        return await this.prisma.user.findFirst({where: {id : user_id}, include: {invited: true, invites: true, role: true}});
     }
 
 /*-------------------------------------------------------------
@@ -50,6 +50,11 @@ export class UsersService {
 
     async getUserByUsername(username: string) : Promise<User>{
         return await this.prisma.user.findUnique({where: {nickname: username}})
+    }
+
+    async getUserRole(user_id:string) : Promise<Role>{
+        const u = await this.prisma.user.findUnique({where:{id: user_id}, include: {role:true}});
+        return u.role;
     }
 
     async add_login_history(history : Login_History, user: User){
