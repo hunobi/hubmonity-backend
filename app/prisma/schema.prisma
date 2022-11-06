@@ -25,7 +25,7 @@ model User{
   profile Profile
   settings Setting
   
-  role_id String @unique @db.ObjectId
+  role_id String? @unique @db.ObjectId
   role Role? @relation(fields: [role_id], references: [id])
 
   invites Invite[] @relation("MyInvites")
