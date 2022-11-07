@@ -6,6 +6,8 @@ import { AuthService } from './auth.service';
 import { JwtStrategy } from './jwt.strategy';
 import { PassportModule } from '@nestjs/passport';
 import * as dotenv from 'dotenv'
+import { InviteModule } from 'src/invite/invite.module';
+import { PenaltyModule } from 'src/users/penalty/penalty.module';
 
 const env = dotenv.config({path: '.env'}).parsed;
 /*
@@ -17,8 +19,10 @@ JwtModule.register({
 @Module({
   imports: [UsersModule,
     PassportModule,
-    JwtModule
-    ],
+    JwtModule,
+    InviteModule,
+    PenaltyModule
+  ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],
   exports: [AuthService]
