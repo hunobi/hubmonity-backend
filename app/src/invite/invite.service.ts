@@ -46,7 +46,13 @@ export class InviteService {
         return;
     }
 
-
+    async useInvite(invite_id: string, user_id : string){
+        return await this.prisma.invite.update({where:{id:invite_id}, data:{
+            invited :{connect: {id: user_id}},
+            is_active: false,
+            end_time : Date.now()
+        }})
+    }
 
     async getInviteByID(invite_id) : Promise<Invite>{
         return await this.prisma.invite.findUnique({where: {id: invite_id}});
