@@ -9,7 +9,7 @@ import * as dotenv from 'dotenv'
 import { PaginationDto } from './dto/pagination.dto';
 const env = dotenv.config({path: '.env'}).parsed;
 
-const number_of_list = 50;
+const number_of_list = (+env.PAGINATION_ELEMENTS_PER_PAGE)
 
 @Injectable()
 export class FilesService {
