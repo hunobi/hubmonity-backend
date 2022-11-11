@@ -1,6 +1,7 @@
 import { Controller, Delete, Get, Param, Post, UseGuards, HttpCode, UploadedFile, ParseFilePipe, MaxFileSizeValidator, UseInterceptors, Query, BadRequestException, Res, Response } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { userFileOptions } from 'src/configs/multer-options.config';
 import { AuthUserDto } from 'src/users/dto/auth-user.dto';
 import { AuthUser } from 'src/users/user.decorator';
 import { PaginationDto } from './dto/pagination.dto';
@@ -33,12 +34,9 @@ export class FilesController {
     @Post()
     @UseGuards(JwtAuthGuard)
     @HttpCode(201)
-    @UseInterceptors(FileInterceptor('file'))
-    uploadFile(@AuthUser() userInfo : AuthUserDto, @UploadedFile(new ParseFilePipe({
-        validators:[
-            new MaxFileSizeValidator({maxSize: 1000000000}) // 1gb
-        ]
-    })) file : Express.Multer.File){
+    @UseInterceptors(FileInterceptor('file', userFileOptions))
+    uploadFile(@AuthUser() userInfo : AuthUserDto, @UploadedFile() file : Express.Multer.File){
+        console.log(file);
         return this.files_service.public_uploadFile(file, userInfo.user_id);
     }
 
