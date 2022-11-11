@@ -3,7 +3,9 @@ Część serwerowa aplikacji Hubmonity.
 
 # Plik konfiguracyjny .env
 Wymagana struktura pliku .env:
+
 | Zmienna | Opis |
+| ------------- | ------------- |
 | DATABASE_URL | Adres url do bazy danych |
 | TOKEN_SECRET | Klucz tajny do podpisywania tokena JWT |
 | TOKEN_EXPIRE | Czas życia tokena JWT (np '5m') |
