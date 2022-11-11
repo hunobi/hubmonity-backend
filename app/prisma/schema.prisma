@@ -190,6 +190,7 @@ model File{
   create_time Int
   filename String
   extension String?
+  mime String?
   size Int
   path String
 }
