@@ -6,7 +6,7 @@ import { createReadStream } from 'fs';
 import { extname } from 'path';
 import { unlink, readFile } from 'fs/promises';
 import * as dotenv from 'dotenv'
-import { PaginationDto } from './dto/pagination.dto';
+import { PaginationDto } from '../universal-dto/pagination.dto';
 const env = dotenv.config({path: '.env'}).parsed;
 
 const number_of_list = (+env.PAGINATION_ELEMENTS_PER_PAGE)

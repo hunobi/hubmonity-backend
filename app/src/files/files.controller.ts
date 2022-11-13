@@ -4,7 +4,7 @@ import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { userFileOptions } from 'src/configs/multer-options.config';
 import { AuthUserDto } from 'src/users/dto/auth-user.dto';
 import { AuthUser } from 'src/users/user.decorator';
-import { PaginationDto } from './dto/pagination.dto';
+import { PaginationDto } from '../universal-dto/pagination.dto';
 import { FilesService } from './files.service';
 
 @Controller('files')
