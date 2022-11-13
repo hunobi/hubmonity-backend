@@ -8,10 +8,11 @@ import { RatingsModule } from './ratings/ratings.module';
 import { SolutionsModule } from './solutions/solutions.module';
 import { QuestionsModule } from './questions/questions.module';
 import { FilesModule } from './files/files.module';
+import { RolesModule } from './roles/roles.module';
 
 @Module({
   imports: [PrismaModule, UsersModule, AuthModule, 
     InviteModule, TagsModule, RatingsModule, 
-    SolutionsModule, QuestionsModule, FilesModule],
+    SolutionsModule, QuestionsModule, FilesModule, RolesModule],
 })
 export class AppModule {}
