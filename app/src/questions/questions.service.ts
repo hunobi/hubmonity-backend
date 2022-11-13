@@ -15,24 +15,28 @@ export class QuestionsService {
         
     async public_getQuestionByID(user_id: string, quest_id : string) : Promise<Question>{
         if(ObjectID.isValid(quest_id)){throw new NotFoundException()}
+        /*
         const role = await this.users_service.getUserRole(user_id);
         if(!role || role.questions.indexOf(Privilege.CAN_READ) === -1){throw new ForbiddenException()}
+        */
         return this.getQuestionByID(quest_id);
     }
 
     
     async public_createQuestion(user_id: string, data : CreateQuestionDto){
-
+        /*
         const role = await this.users_service.getUserRole(user_id);
         if(!role || role.questions.indexOf(Privilege.CAN_WRITE) === -1){throw new ForbiddenException()}
-        
+        */
         return await this.createQuestion(user_id, data);
     }
 
     async public_deleteQuestion(user_id : string, quest_id : string){
         if(ObjectID.isValid(quest_id)){throw new NotFoundException()}
+        /*
         const role = await this.users_service.getUserRole(user_id);
         if(!role || role.questions.indexOf(Privilege.CAN_DELETE) === -1){throw new ForbiddenException()}
+        */
         return await this.prisma.question.delete({where:{id: quest_id}});
     }
     
@@ -40,8 +44,10 @@ export class QuestionsService {
         if(ObjectID.isValid(quest_id)){throw new NotFoundException()}
         const question = await this.getQuestionByID(quest_id);
         if(question.author_id !== user_id){
+           /*
             const role = await this.users_service.getUserRole(user_id);
             if(!role || role.questions.indexOf(Privilege.CAN_UPDATE) === -1){throw new ForbiddenException()}
+            */
         }
         return await this.prisma.question.update({
             where:{id: quest_id}, data: {solved: true}
