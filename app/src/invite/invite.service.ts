@@ -1,21 +1,25 @@
 import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
-import { Invite } from '@prisma/client';
+import { Invite, Privilege } from '@prisma/client';
 import {ObjectID} from 'bson';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { RolesService } from 'src/roles/roles.service';
 import { InviteConfigDto } from './dto/inviteConfig.dto';
 
 @Injectable()
 export class InviteService {
     constructor(
-        private prisma : PrismaService){}
+        private prisma : PrismaService,
+        private roles_service : RolesService    
+    ){}
     
-    async getInvites(user_id : string) : Promise<Invite[]>{
+    async getMyInvites(user_id : string) : Promise<Invite[]>{
         return await this.prisma.invite.findMany({where: {
             inviterID: user_id
         }});
     }
 
     async createInvite(user_id : string, config : InviteConfigDto): Promise<Invite>{
+        if(!await this.roles_service.checkPrivilages(user_id, [Privilege.INVITES_CAN_WRITE])){throw new ForbiddenException();}
         let time_tmp = config.end_time - Date.now(); 
         // expiration time must be greater than 0 and less than 1 week
         if(time_tmp <= 0 || time_tmp > 604800000){throw new BadRequestException() } 
@@ -37,7 +41,7 @@ export class InviteService {
         const invite = await this.getInviteByID(invite_id);
         if(!invite){throw new NotFoundException();}
         if(invite.inviterID !== user_id){
-            throw new ForbiddenException();
+            if(!await this.roles_service.checkPrivilages(user_id, [Privilege.INVITES_CAN_DELETE])){throw new ForbiddenException();}
         }
         // we can delete only active invitate
         if(invite.is_active){
@@ -45,6 +49,8 @@ export class InviteService {
         }
         return;
     }
+
+    //----
 
     async useInvite(invite_id: string, user_id : string){
         return await this.prisma.invite.update({where:{id:invite_id}, data:{

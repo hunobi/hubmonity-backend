@@ -12,9 +12,9 @@ export class InviteController {
     constructor(private invite_service : InviteService){}
 
     @UseGuards(JwtAuthGuard)
-    @Get()
-    getInvites(@AuthUser() user: AuthUserDto){
-        return this.invite_service.getInvites(user.user_id);
+    @Get('/@me')
+    getMyInvites(@AuthUser() user: AuthUserDto){
+        return this.invite_service.getMyInvites(user.user_id);
     }
 
     @UseGuards(JwtAuthGuard)

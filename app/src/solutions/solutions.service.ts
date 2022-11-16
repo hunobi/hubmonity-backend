@@ -7,47 +7,36 @@ import { RatingsService } from 'src/ratings/ratings.service';
 import { CreateSolutionDto } from './dto/create-solution.dto';
 import { BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common/exceptions';
 import { UsersService } from 'src/users/users.service';
+import { RolesService } from 'src/roles/roles.service';
 
 @Injectable()
 export class SolutionsService {
     constructor(private prisma : PrismaService,
         private rating_service : RatingsService,
-        private user_service : UsersService
+        private user_service : UsersService,
+        private roles_service : RolesService
     ){}
 
 
     async public_getSolution(user_id : string, solution_id : string){
         const solution = await this.getSolutionByID(solution_id);
         if(!solution){throw new NotFoundException();}
-        /*
-        const role = await this.user_service.getUserRole(user_id);
-        if(role.solutions.indexOf(Privilege.CAN_READ) === -1 || 
-            role.questions.indexOf(Privilege.CAN_READ) === -1
-        ){throw new ForbiddenException();}
-        */
+        if(!await this.roles_service.checkPrivilages(user_id, [Privilege.SOLUTIONS_CAN_READ, Privilege.QUESTIONS_CAN_READ])){throw new ForbiddenException();}
         return solution;
     }
 
     async public_createSolution(user_id : string, body : CreateSolutionDto){
-        /*
-        const role = await this.user_service.getUserRole(user_id);
-        if(role.solutions.indexOf(Privilege.CAN_WRITE) === -1 || 
-        role.questions.indexOf(Privilege.CAN_READ) === -1){
-            throw new ForbiddenException();
-        }
-        */
+        if(!await this.roles_service.checkPrivilages(user_id, 
+            [Privilege.SOLUTIONS_CAN_READ, Privilege.SOLUTIONS_CAN_WRITE, Privilege.QUESTIONS_CAN_READ]))
+        {throw new ForbiddenException();}
+        
         return this.createSolution(user_id, body);
     }
 
     async public_addRating(user_id : string, solution_id : string, value :RatingType){
         const solution = await this.getSolutionByID(solution_id);
         if(!solution){throw new NotFoundException();}
-        /*const role = await this.user_service.getUserRole(user_id);
-        if(role.solutions.indexOf(Privilege.CAN_READ) === -1 || 
-            role.questions.indexOf(Privilege.CAN_READ) === -1 ||
-            role.ratings.indexOf(Privilege.CAN_WRITE) === -1
-        ){throw new ForbiddenException();}
-        */
+        if(!await this.roles_service.checkPrivilages(user_id, [Privilege.SOLUTIONS_CAN_READ, Privilege.QUESTIONS_CAN_READ, Privilege.RATINGS_CAN_WRITE])){throw new ForbiddenException();}
         const dto = new CreateRatingDto();
         dto.solution_id = solution_id;
         dto.voter_id = user_id;
@@ -58,26 +47,20 @@ export class SolutionsService {
     async public_removeRating(user_id : string, solution_id : string){
         const solution = await this.getSolutionByID(solution_id);
         if(!solution){throw new NotFoundException();}
-        /*const role = await this.user_service.getUserRole(user_id);
-        if(role.solutions.indexOf(Privilege.CAN_READ) === -1 || 
-            role.questions.indexOf(Privilege.CAN_READ) === -1 ||
-            role.ratings.indexOf(Privilege.CAN_WRITE) === -1
-        ){throw new ForbiddenException();}*/
         let rating = solution.ratings.find(rating => {
             return rating.voter_id === user_id;
         });
+        if(rating.voter_id !== user_id){
+            if(!await this.roles_service.checkPrivilages(user_id, [Privilege.SOLUTIONS_CAN_READ, Privilege.QUESTIONS_CAN_READ, Privilege.RATINGS_CAN_DELETE])){throw new ForbiddenException();}
+        }
         await this.rating_service.cancelRating(rating);
         return;
     }
 
     async public_deleteSolution(user_id : string, solution_id : string){
+        if(!await this.roles_service.checkPrivilages(user_id, [Privilege.SOLUTIONS_CAN_DELETE])){throw new ForbiddenException();}
         const solution = await this.getSolutionByID(solution_id);
         if(!solution){throw new NotFoundException();}
-       /* const role = await this.user_service.getUserRole(user_id);
-        if(role.solutions.indexOf(Privilege.CAN_READ) === -1 || 
-            role.questions.indexOf(Privilege.CAN_READ) === -1 ||
-            role.solutions.indexOf(Privilege.CAN_DELETE) === -1
-        ){throw new ForbiddenException();}*/
         await this.deleteSolution(solution_id);
         return;
     }

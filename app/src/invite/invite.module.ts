@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { JwtModule } from '@nestjs/jwt';
 import { PrismaModule } from 'src/prisma/prisma.module';
+import { RolesModule } from 'src/roles/roles.module';
 import { InviteController } from './invite.controller';
 import { InviteService } from './invite.service';
 
 @Module({
-  imports: [PrismaModule],
+  imports: [PrismaModule, RolesModule],
   controllers: [InviteController],
   providers: [InviteService],
   exports: [InviteService]
